@@ -1,6 +1,6 @@
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Button,
@@ -59,14 +59,20 @@ export default function CameraScreen() {
 
   const stopRecording = () => {
     setIsRecording(false);
+    Alert.alert('Save Take?', 'Do you want to save this recording?', [
+      { text: 'No', onPress: () => setLastVideoUri(null) },
+      {
+        text: 'Yes',
+        onPress: async () => {
+          if (lastVideoUri) {
+            await MediaLibrary.createAssetAsync(lastVideoUri);
+            Alert.alert('Saved!', 'Your recording has been saved.');
+          }
+        },
+      },
+    ]);
   };
 
-  const handleSaveVideo = async () => {
-    if (lastVideoUri) {
-      const asset = await MediaLibrary.createAssetAsync(lastVideoUri);
-      Alert.alert('Video Saved', `Saved to gallery: ${asset.uri}`);
-    }
-  };
   return (
     <View style={styles.container}>
       <CameraView style={styles.camera} facing={facing}>
@@ -82,16 +88,14 @@ export default function CameraScreen() {
           </View>
         )}
 
-        {/* controll buttons */}
         <View style={styles.buttonContainer}>
-          {lastVideoUri && (
-            <TouchableOpacity
-              style={styles.sideButton}
-              onPress={handleSaveVideo}
-            >
-              <Text style={styles.text}>Save</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={styles.sideButton}>
+            {lastVideoUri ? (
+              <Image source={{ uri: lastVideoUri }} style={styles.thumbnail} />
+            ) : (
+              <View style={styles.emptyThumbnail} />
+            )}
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.recordButton, isRecording && styles.stopButton]}
@@ -144,17 +148,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   sideButton: {
-    flex: 1,
+    width: 50,
+    height: 50,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  button: {
-    alignItems: 'center',
+  thumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 50,
   },
-  text: {
-    fontSize: 18,
-    color: 'white',
+  emptyThumbnail: {
+    width: 50,
+    height: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 50,
   },
-
   rotateCameraButton: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -169,7 +178,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     zIndex: 1,
-    alignContent: 'center',
   },
   recordingIndicator: {
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
