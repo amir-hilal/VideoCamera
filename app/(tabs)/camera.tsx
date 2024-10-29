@@ -1,6 +1,6 @@
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Button,
@@ -14,12 +14,27 @@ import {
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
+  const [mediaPermission, setMediaPermission] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [lastVideoUri, setLastVideoUri] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(
     null
   );
+  const cameraRef = useRef<CameraView>(null);
+
+  useEffect(() => {
+    if (cameraRef.current) {
+      console.log('Camera is fully ready for recording');
+    }
+  }, [cameraRef.current]);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      setMediaPermission(status === 'granted');
+    })();
+  }, []);
 
   useEffect(() => {
     if (isRecording) {
@@ -52,30 +67,59 @@ export default function CameraScreen() {
   };
 
   const startRecording = async () => {
-    if (isRecording) return;
+    if (isRecording || !cameraRef.current) return;
+    console.log('Starting recording...');
     setIsRecording(true);
-    setLastVideoUri('videoUri');
+
+    try {
+      const video = await cameraRef.current.recordAsync({ maxDuration: 10 });
+      if (video?.uri) {
+        setLastVideoUri(video.uri);
+      } else {
+        Alert.alert('Recording failed.');
+      }
+    } catch (error) {
+      Alert.alert('Recording failed.');
+    }
   };
 
   const stopRecording = () => {
+    if (!isRecording) return;
     setIsRecording(false);
-    Alert.alert('Save Take?', 'Do you want to save this recording?', [
-      { text: 'No', onPress: () => setLastVideoUri(null) },
-      {
-        text: 'Yes',
-        onPress: async () => {
-          if (lastVideoUri) {
-            await MediaLibrary.createAssetAsync(lastVideoUri);
-            Alert.alert('Saved!', 'Your recording has been saved.');
-          }
+
+    setTimeout(() => {
+      cameraRef.current?.stopRecording();
+    }, 500);
+
+    if (lastVideoUri) {
+      Alert.alert('Save Take?', 'Do you want to save this recording?', [
+        { text: 'No', onPress: () => setLastVideoUri(null) },
+        {
+          text: 'Yes',
+          onPress: async () => {
+            try {
+              await MediaLibrary.createAssetAsync(lastVideoUri);
+              Alert.alert('Saved!', 'Your recording has been saved.');
+            } catch (error) {
+              Alert.alert('Save failed', 'Could not save the video.');
+            }
+          },
         },
-      },
-    ]);
+      ]);
+    } else {
+      Alert.alert('Video failed', 'Could not record the video.');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing}>
+      <CameraView
+        mode='video'
+        ref={cameraRef}
+        style={styles.camera}
+        facing={facing}
+        onCameraReady={() => console.log('camera ready...')}
+      >
         {isRecording && (
           <View style={styles.recordingIndicatorContainer}>
             <View style={styles.recordingIndicator}>
