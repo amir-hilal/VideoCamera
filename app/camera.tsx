@@ -13,6 +13,8 @@ import {
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
+  const [flash, setFlash] = useState(false);
+  const [gridVisible, setGridVisible] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const [mediaPermission, setMediaPermission] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -24,12 +26,6 @@ export default function CameraScreen() {
   const cameraRef = useRef<CameraView>(null);
 
   useEffect(() => {
-    if (cameraRef.current) {
-      console.log('Camera is fully ready for recording');
-    }
-  }, [cameraRef.current]);
-
-  useEffect(() => {
     (async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       setMediaPermission(status === 'granted');
@@ -39,9 +35,7 @@ export default function CameraScreen() {
   useEffect(() => {
     if (isRecording) {
       setTimerInterval(
-        setInterval(() => {
-          setElapsedTime((prev) => prev + 1);
-        }, 1000)
+        setInterval(() => setElapsedTime((prev) => prev + 1), 1000)
       );
     } else {
       clearInterval(timerInterval as NodeJS.Timeout);
@@ -57,18 +51,18 @@ export default function CameraScreen() {
         <Text style={styles.message}>
           We need your permission to show the camera
         </Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <Button onPress={requestPermission} title="Grant permission" />
       </View>
     );
   }
 
-  const toggleCameraFacing = () => {
+  const toggleCameraFacing = () =>
     setFacing((current) => (current === 'back' ? 'front' : 'back'));
-  };
+  const toggleFlash = () => setFlash(!flash);
+  const toggleGrid = () => setGridVisible(!gridVisible);
 
   const startRecording = async () => {
     if (isRecording || !cameraRef.current) return;
-    console.log('Starting recording...');
     setIsRecording(true);
 
     try {
@@ -86,10 +80,7 @@ export default function CameraScreen() {
   const stopRecording = () => {
     if (!isRecording) return;
     setIsRecording(false);
-
-    setTimeout(() => {
-      cameraRef.current?.stopRecording();
-    }, 500);
+    cameraRef.current?.stopRecording();
 
     if (lastVideoUri) {
       Alert.alert('Save Take?', 'Do you want to save this recording?', [
@@ -113,24 +104,41 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Top Control Section with Flash, Grid, and Recording Indicator */}
+      <View style={styles.topControls}>
+        {isRecording ? (
+          <>
+            <Text style={styles.recordingText}>Recording</Text>
+            <Text style={styles.elapsedTime}>
+              {`00:${elapsedTime < 10 ? '0' : ''}${elapsedTime}`}
+            </Text>
+          </>
+        ) : (
+          <>
+            <TouchableOpacity onPress={toggleGrid} style={styles.controlButton}>
+              <Text style={styles.controlText}>#</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={toggleFlash}
+              style={styles.controlButton}
+            >
+              <Text style={styles.controlText}>
+                {flash ? 'Flash On' : 'Flash Off'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+
       <CameraView
-        mode='video'
+        mode="video"
         ref={cameraRef}
         style={styles.camera}
         facing={facing}
-        onCameraReady={() => console.log('camera ready...')}
+        enableTorch={flash}
       >
-        {isRecording && (
-          <View style={styles.recordingIndicatorContainer}>
-            <View style={styles.recordingIndicator}>
-              <Text style={styles.recordingIndicatorText}>
-                ● {Math.floor(elapsedTime / 60)}:
-                {elapsedTime % 60 < 10 ? '0' : ''}
-                {elapsedTime % 60}
-              </Text>
-            </View>
-          </View>
-        )}
+        {/* Grid Overlay */}
+        {gridVisible && <View style={styles.gridOverlay} />}
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.sideButton}>
@@ -158,7 +166,7 @@ export default function CameraScreen() {
           >
             <View style={styles.rotateCameraButton}>
               <Image
-                source={require('../../assets/images/rotate.png')}
+                source={require('../assets/images/rotate.png')}
                 style={{ width: 25, height: 25 }}
               />
             </View>
@@ -258,5 +266,45 @@ const styles = StyleSheet.create({
     height: 25,
     borderRadius: 4,
     backgroundColor: 'black',
+  },
+  topControls: {
+    position: 'absolute',
+    top: 50,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'black',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    zIndex: 2,
+  },
+  controlButton: {
+    padding: 10,
+  },
+  controlText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  recordingText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 10,
+  },
+  elapsedTime: {
+    color: 'white',
+    fontSize: 16,
+    backgroundColor: 'red',
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 5,
+  },
+  gridOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderColor: 'white',
+    borderWidth: 1,
+    opacity: 0.3,
+    zIndex: 1,
   },
 });
