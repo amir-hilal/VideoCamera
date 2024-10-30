@@ -104,15 +104,15 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Top Control Section with Flash, Grid, and Recording Indicator */}
+      {/* Top Control Section */}
       <View style={styles.topControls}>
         {isRecording ? (
-          <>
+          <View style={styles.recordingIndicator}>
             <Text style={styles.recordingText}>Recording</Text>
             <Text style={styles.elapsedTime}>
               {`00:${elapsedTime < 10 ? '0' : ''}${elapsedTime}`}
             </Text>
-          </>
+          </View>
         ) : (
           <>
             <TouchableOpacity onPress={toggleGrid} style={styles.controlButton}>
@@ -130,49 +130,56 @@ export default function CameraScreen() {
         )}
       </View>
 
-      <CameraView
-        mode="video"
-        ref={cameraRef}
-        style={styles.camera}
-        facing={facing}
-        enableTorch={flash}
-      >
-        {/* Grid Overlay */}
-        {gridVisible && <View style={styles.gridOverlay} />}
+      {/* Camera with 9:16 Aspect Ratio */}
+      <View style={styles.cameraWrapper}>
+        <CameraView
+          mode="video"
+          ref={cameraRef}
+          style={styles.camera}
+          facing={facing}
+          enableTorch={flash}
+          mirror={false}
+        >
+          {/* Grid Overlay */}
+          {gridVisible && <View style={styles.gridOverlay} />}
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.sideButton}>
-            {lastVideoUri ? (
-              <Image source={{ uri: lastVideoUri }} style={styles.thumbnail} />
-            ) : (
-              <View style={styles.emptyThumbnail} />
-            )}
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.sideButton}>
+              {lastVideoUri ? (
+                <Image
+                  source={{ uri: lastVideoUri }}
+                  style={styles.thumbnail}
+                />
+              ) : (
+                <View style={styles.emptyThumbnail} />
+              )}
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.recordButton, isRecording && styles.stopButton]}
-            onPress={isRecording ? stopRecording : startRecording}
-          >
-            {isRecording ? (
-              <View style={styles.stopIcon} />
-            ) : (
-              <View style={styles.recordIcon} />
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.recordButton, isRecording && styles.stopButton]}
+              onPress={isRecording ? stopRecording : startRecording}
+            >
+              {isRecording ? (
+                <View style={styles.stopIcon} />
+              ) : (
+                <View style={styles.recordIcon} />
+              )}
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.sideButton}
-            onPress={toggleCameraFacing}
-          >
-            <View style={styles.rotateCameraButton}>
-              <Image
-                source={require('../assets/images/rotate.png')}
-                style={{ width: 25, height: 25 }}
-              />
-            </View>
-          </TouchableOpacity>
-        </View>
-      </CameraView>
+            <TouchableOpacity
+              style={styles.sideButton}
+              onPress={toggleCameraFacing}
+            >
+              <View style={styles.rotateCameraButton}>
+                <Image
+                  source={require('../assets/images/rotate.png')}
+                  style={{ width: 25, height: 25 }}
+                />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </CameraView>
+      </View>
     </View>
   );
 }
@@ -181,10 +188,49 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
+    backgroundColor: 'black',
   },
   message: {
     textAlign: 'center',
     paddingBottom: 10,
+  },
+  topControls: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    backgroundColor: 'black',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    height: 90,
+  },
+  controlButton: {
+    padding: 10,
+    paddingBottom: 0,
+  },
+  controlText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  recordingText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 10,
+  },
+  elapsedTime: {
+    color: 'white',
+    width: 80,
+    fontSize: 16,
+    backgroundColor: 'red',
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    textAlign: 'center'
+  },
+  cameraWrapper: {
+    flex: 1,
+    aspectRatio: 9 / 16,
+    alignSelf: 'center',
+    overflow: 'hidden',
   },
   camera: {
     flex: 1,
@@ -224,24 +270,17 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
   },
-  recordingIndicatorContainer: {
-    position: 'absolute',
-    top: 40,
-    width: '100%',
-    alignItems: 'center',
-    zIndex: 1,
-  },
+
   recordingIndicator: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
     padding: 4,
-    width: 100,
+    width: '100%',
     borderRadius: 100,
   },
-  recordingIndicatorText: {
-    fontSize: 16,
-    color: 'red',
-    textAlign: 'center',
-  },
+
   recordButton: {
     width: 70,
     height: 70,
@@ -267,39 +306,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: 'black',
   },
-  topControls: {
-    position: 'absolute',
-    top: 50,
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'black',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    zIndex: 2,
-  },
-  controlButton: {
-    padding: 10,
-  },
-  controlText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  recordingText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 10,
-  },
-  elapsedTime: {
-    color: 'white',
-    fontSize: 16,
-    backgroundColor: 'red',
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 5,
-  },
+
   gridOverlay: {
     ...StyleSheet.absoluteFillObject,
     borderColor: 'white',
