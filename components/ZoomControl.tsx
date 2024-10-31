@@ -45,7 +45,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     padding: 0,
-
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -61,8 +60,6 @@ const styles = StyleSheet.create({
   selectedZoomButton: {
     backgroundColor: 'white',
     borderRadius: 50,
-
-    color: 'rgba(0',
   },
   zoomText: {
     color: 'white',

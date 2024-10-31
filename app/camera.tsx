@@ -1,9 +1,9 @@
+import SaveTakeModal from '@/components/SaveTakeModal ';
 import ZoomControl from '@/components/ZoomControl';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   Button,
   Image,
   PanResponder,
@@ -24,6 +24,7 @@ export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [mediaPermission, setMediaPermission] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [lastVideoUri, setLastVideoUri] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [zoom, setZoom] = useState(0);
@@ -108,31 +109,34 @@ export default function CameraScreen() {
   const startRecording = async () => {
     if (isRecording || !cameraRef.current) return;
     setIsRecording(true);
-    setLastVideoUri(null);
     try {
       const video = await cameraRef.current.recordAsync();
       if (video?.uri) {
         setLastVideoUri(video.uri);
-        Alert.alert('Save Take?', 'Do you want to save this recording?', [
-          { text: 'No', onPress: () => setLastVideoUri(null) },
-          {
-            text: 'Yes',
-            onPress: async () => {
-              try {
-                await MediaLibrary.createAssetAsync(video.uri);
-                Alert.alert('Saved!', 'Your recording has been saved.');
-              } catch (error) {
-                Alert.alert('Save failed', 'Could not save the video.');
-              }
-            },
-          },
-        ]);
-      } else {
-        Alert.alert('Recording failed.');
+        setModalVisible(true); // Show modal on recording finish
       }
     } catch (error) {
-      Alert.alert('Recording failed.');
+      console.error('Recording failed.');
+    } finally {
+      setIsRecording(false);
     }
+  };
+
+  const handleSave = async () => {
+    if (lastVideoUri) {
+      try {
+        await MediaLibrary.createAssetAsync(lastVideoUri);
+        console.log('Video saved successfully');
+      } catch (error) {
+        console.error('Save failed');
+      }
+    }
+    setModalVisible(false); // Close modal after saving
+  };
+
+  const handleDiscard = () => {
+    setLastVideoUri(null);
+    setModalVisible(false); // Close modal without saving
   };
 
   const stopRecording = () => {
@@ -167,7 +171,11 @@ export default function CameraScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={toggleFlash}
-              style={styles.controlButton}
+              style={[
+                styles.controlButton,
+                facing === 'front' && styles.disabledButton,
+              ]}
+              disabled={facing === 'front'}
             >
               <View>
                 {flash ? (
@@ -248,6 +256,12 @@ export default function CameraScreen() {
             </TouchableOpacity>
           </View>
         </CameraView>
+        <SaveTakeModal
+          visible={modalVisible}
+          onYes={handleSave}
+          onNo={handleDiscard}
+        />
+
         <View style={styles.zoomControl}>
           <ZoomControl zoom={zoom} setZoom={setZoom} />
         </View>
@@ -308,7 +322,6 @@ const styles = StyleSheet.create({
   zoomControl: {
     width: '100%',
     alignItems: 'center',
-
   },
   camera: {
     flex: 1,
@@ -322,6 +335,7 @@ const styles = StyleSheet.create({
     bottom: 30,
     width: '100%',
     paddingHorizontal: 20,
+    zIndex: 2,
   },
   sideButton: {
     width: 50,
@@ -384,7 +398,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: 'black',
   },
-
+  disabledButton: {
+    opacity: 0.4,
+  },
   gridOverlay: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 1,
