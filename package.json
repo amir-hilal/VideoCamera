@@ -42,7 +42,8 @@
     "react-native-svg": "15.2.0",
     "react-native-svg-transformer": "^1.5.0",
     "react-native-web": "~0.19.10",
-    "videocamera": "file:"
+    "videocamera": "file:",
+    "expo-video-thumbnails": "~8.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

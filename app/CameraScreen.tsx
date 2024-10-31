@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 import React, { useEffect, useRef, useState } from 'react';
 import { Button, Image, Text, TouchableOpacity, View } from 'react-native';
 import FlashOff from '../assets/svg/flash-off.svg';
@@ -37,6 +38,9 @@ export default function CameraScreen() {
   );
   const cameraRef = useRef<CameraView>(null);
   const navigation = useNavigation<CameraScreenNavigationProp>();
+  const [lastVideoThumbnail, setLastVideoThumbnail] = useState<string | null>(
+    null
+  ); // Thumbnail URI
 
   useEffect(() => {
     (async () => {
@@ -57,6 +61,17 @@ export default function CameraScreen() {
     }
     return () => clearInterval(timerInterval as NodeJS.Timeout);
   }, [isRecording]);
+
+  const generateThumbnail = async (videoUri: string) => {
+    try {
+      const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+        time: 1500, // Specify a time in milliseconds to capture the thumbnail
+      });
+      setLastVideoThumbnail(uri);
+    } catch (e) {
+      console.warn(e);
+    }
+  };
 
   if (!permission) return <View />;
   if (!permission.granted) {
@@ -82,6 +97,7 @@ export default function CameraScreen() {
       const video = await cameraRef.current.recordAsync();
       if (video?.uri) {
         setLastVideoUri(video.uri);
+        await generateThumbnail(video.uri);
         setModalVisible(true);
       }
     } catch (error) {
@@ -107,6 +123,7 @@ export default function CameraScreen() {
 
   const handleDiscard = () => {
     setLastVideoUri(null);
+    setLastVideoThumbnail(null);
     setModalVisible(false);
   };
 
@@ -197,9 +214,10 @@ export default function CameraScreen() {
             >
               {!isRecording && (
                 <TouchableOpacity onPress={goToGallery}>
-                  {savedVideos.length > 0 ? (
+                  {/* Display thumbnail of the last saved video */}
+                  {lastVideoThumbnail ? (
                     <Image
-                      source={{ uri: savedVideos[savedVideos.length - 1] }}
+                      source={{ uri: lastVideoThumbnail }}
                       style={styles.thumbnail}
                     />
                   ) : (
