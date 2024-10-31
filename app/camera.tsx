@@ -1,4 +1,4 @@
-import ZoomSlider from '@/components/ZoomSlider';
+import ZoomControl from '@/components/ZoomControl';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
@@ -248,7 +248,9 @@ export default function CameraScreen() {
             </TouchableOpacity>
           </View>
         </CameraView>
-        <ZoomSlider zoom={zoom} onZoomChange={setZoom} />
+        <View style={styles.zoomControl}>
+          <ZoomControl zoom={zoom} setZoom={setZoom} />
+        </View>
       </View>
     </View>
   );
@@ -301,8 +303,12 @@ const styles = StyleSheet.create({
   cameraWrapper: {
     flex: 1,
     aspectRatio: 9 / 16,
-    alignSelf: 'center',
     overflow: 'hidden',
+  },
+  zoomControl: {
+    width: '100%',
+    alignItems: 'center',
+
   },
   camera: {
     flex: 1,
