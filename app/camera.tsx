@@ -221,17 +221,24 @@ export default function CameraScreen() {
             </View>
           )}
           {!modalVisible && (
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.sideButton}>
-                {lastVideoUri ? (
-                  <Image
-                    source={{ uri: lastVideoUri }}
-                    style={styles.thumbnail}
-                  />
-                ) : (
-                  <View style={styles.emptyThumbnail} />
-                )}
-              </TouchableOpacity>
+            <View
+              style={[
+                styles.buttonContainer,
+                isRecording && styles.centeredButtonContainer,
+              ]}
+            >
+              {!isRecording && (
+                <TouchableOpacity>
+                  {lastVideoUri ? (
+                    <Image
+                      source={{ uri: lastVideoUri }}
+                      style={styles.thumbnail}
+                    />
+                  ) : (
+                    <View style={styles.emptyThumbnail} />
+                  )}
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity
                 style={[styles.recordButton, isRecording && styles.stopButton]}
@@ -244,10 +251,7 @@ export default function CameraScreen() {
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.sideButton}
-                onPress={toggleCameraFacing}
-              >
+              <TouchableOpacity onPress={toggleCameraFacing}>
                 {!isRecording && (
                   <View style={styles.rotateCameraButton}>
                     <Image
@@ -312,6 +316,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
+
   elapsedTimeBox: {
     backgroundColor: 'rgba(255, 62, 62, 1)',
     paddingHorizontal: 10,
@@ -342,10 +347,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     zIndex: 2,
   },
-  sideButton: {
-    width: 50,
-    height: 50,
+  centeredButtonContainer: {
+    justifyContent: 'center',
   },
+
   thumbnail: {
     width: 50,
     height: 50,
