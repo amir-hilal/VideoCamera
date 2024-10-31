@@ -1,3 +1,4 @@
+import ZoomSlider from '@/components/ZoomSlider';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
@@ -5,6 +6,7 @@ import {
   Alert,
   Button,
   Image,
+  PanResponder,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -24,6 +26,8 @@ export default function CameraScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const [lastVideoUri, setLastVideoUri] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [zoom, setZoom] = useState(0);
+  const [lastDistance, setLastDistance] = useState(0);
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(
     null
   );
@@ -35,6 +39,42 @@ export default function CameraScreen() {
       setMediaPermission(status === 'granted');
     })();
   }, []);
+
+  const calculateDistance = (touches: string | any[]) => {
+    if (touches.length < 2) return 0;
+    const [touch1, touch2] = touches;
+    const dx = touch1.pageX - touch2.pageX;
+    const dy = touch1.pageY - touch2.pageY;
+    return Math.hypot(dx, dy); // Calculate precise distance between fingers
+  };
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt) => {
+      const { touches } = evt.nativeEvent;
+      if (touches.length === 2) {
+        setLastDistance(calculateDistance(touches));
+      }
+    },
+    onPanResponderMove: (evt) => {
+      const { touches } = evt.nativeEvent;
+      if (touches.length === 2) {
+        const currentDistance = calculateDistance(touches);
+        const distanceDelta = currentDistance - lastDistance;
+
+        if (Math.abs(distanceDelta) > 10) {
+          const newZoom =
+            distanceDelta > 0
+              ? Math.min(1, zoom + 0.001)
+              : Math.max(0, zoom - 0.001);
+
+          setZoom(newZoom);
+          setLastDistance(currentDistance);
+        }
+      }
+    },
+  });
 
   useEffect(() => {
     if (isRecording) {
@@ -73,6 +113,20 @@ export default function CameraScreen() {
       const video = await cameraRef.current.recordAsync();
       if (video?.uri) {
         setLastVideoUri(video.uri);
+        Alert.alert('Save Take?', 'Do you want to save this recording?', [
+          { text: 'No', onPress: () => setLastVideoUri(null) },
+          {
+            text: 'Yes',
+            onPress: async () => {
+              try {
+                await MediaLibrary.createAssetAsync(video.uri);
+                Alert.alert('Saved!', 'Your recording has been saved.');
+              } catch (error) {
+                Alert.alert('Save failed', 'Could not save the video.');
+              }
+            },
+          },
+        ]);
       } else {
         Alert.alert('Recording failed.');
       }
@@ -85,25 +139,6 @@ export default function CameraScreen() {
     if (!isRecording) return;
     setIsRecording(false);
     cameraRef.current?.stopRecording();
-
-    if (lastVideoUri) {
-      Alert.alert('Save Take?', 'Do you want to save this recording?', [
-        { text: 'No', onPress: () => setLastVideoUri(null) },
-        {
-          text: 'Yes',
-          onPress: async () => {
-            try {
-              await MediaLibrary.createAssetAsync(lastVideoUri);
-              Alert.alert('Saved!', 'Your recording has been saved.');
-            } catch (error) {
-              Alert.alert('Save failed', 'Could not save the video.');
-            }
-          },
-        },
-      ]);
-    } else {
-      Alert.alert('Video failed', 'Could not record the video.');
-    }
   };
 
   return (
@@ -147,18 +182,36 @@ export default function CameraScreen() {
       </View>
 
       {/* Camera with 9:16 Aspect Ratio */}
-      <View style={styles.cameraWrapper}>
+      <View style={styles.cameraWrapper} {...panResponder.panHandlers}>
         <CameraView
+          mirror={true}
           mode="video"
           ref={cameraRef}
           style={styles.camera}
           facing={facing}
           enableTorch={flash}
-          mirror={false}
+          zoom={zoom}
         >
           {/* Grid Overlay */}
-          {gridVisible && <View style={styles.gridOverlay} />}
+          {gridVisible && (
+            <View style={styles.gridOverlay}>
+              {/* Horizontal Lines */}
+              <View
+                style={[styles.line, styles.horizontalLine, { top: '33.33%' }]}
+              />
+              <View
+                style={[styles.line, styles.horizontalLine, { top: '66.66%' }]}
+              />
 
+              {/* Vertical Lines */}
+              <View
+                style={[styles.line, styles.verticalLine, { left: '33.33%' }]}
+              />
+              <View
+                style={[styles.line, styles.verticalLine, { left: '66.66%' }]}
+              />
+            </View>
+          )}
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.sideButton}>
               {lastVideoUri ? (
@@ -195,6 +248,7 @@ export default function CameraScreen() {
             </TouchableOpacity>
           </View>
         </CameraView>
+        <ZoomSlider zoom={zoom} onZoomChange={setZoom} />
       </View>
     </View>
   );
@@ -327,9 +381,19 @@ const styles = StyleSheet.create({
 
   gridOverlay: {
     ...StyleSheet.absoluteFillObject,
-    borderColor: 'white',
-    borderWidth: 1,
-    opacity: 0.3,
     zIndex: 1,
+  },
+  line: {
+    position: 'absolute',
+    backgroundColor: 'white',
+    opacity: 0.4,
+  },
+  horizontalLine: {
+    height: 1,
+    width: '100%',
+  },
+  verticalLine: {
+    width: 1,
+    height: '100%',
   },
 });
