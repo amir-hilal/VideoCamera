@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PanResponder } from 'react-native';
-import { calculateDistance } from '../app/Camera/cameraUtils';
+import { calculateDistance } from '../app/cameraUtils';
 
 export const useZoomPanResponder = (
   zoom: number,

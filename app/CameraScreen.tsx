@@ -1,16 +1,24 @@
 import SaveTakeModal from '@/components/SaveTakeModal ';
 import ZoomControl from '@/components/ZoomControl';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
 import { Button, Image, Text, TouchableOpacity, View } from 'react-native';
-import { ElapsedTimeIndicator } from '../../components/ElapsedTimeIndicator';
-import { useZoomPanResponder } from '../../hooks/useZoomPanResponder';
-import FlashOff from '../../assets/svg/flash-off.svg';
-import FlashOn from '../../assets/svg/flash-on.svg';
-import GridOff from '../../assets/svg/grid-off.svg';
-import GridOn from '../../assets/svg/grid-on.svg';
+import FlashOff from '../assets/svg/flash-off.svg';
+import FlashOn from '../assets/svg/flash-on.svg';
+import GridOff from '../assets/svg/grid-off.svg';
+import GridOn from '../assets/svg/grid-on.svg';
+import { ElapsedTimeIndicator } from '../components/ElapsedTimeIndicator';
+import { useZoomPanResponder } from '../hooks/useZoomPanResponder';
 import styles from './CameraScreen.styles';
+import { RootStackParamList } from './types';
+
+type CameraScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'CameraScreen'
+>;
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -23,10 +31,12 @@ export default function CameraScreen() {
   const [lastVideoUri, setLastVideoUri] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [zoom, setZoom] = useState(0);
+  const [savedVideos, setSavedVideos] = useState<string[]>([]);
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(
     null
   );
   const cameraRef = useRef<CameraView>(null);
+  const navigation = useNavigation<CameraScreenNavigationProp>();
 
   useEffect(() => {
     (async () => {
@@ -85,6 +95,8 @@ export default function CameraScreen() {
     if (lastVideoUri) {
       try {
         await MediaLibrary.createAssetAsync(lastVideoUri);
+        setSavedVideos([...savedVideos, lastVideoUri]);
+
         console.log('Video saved successfully');
       } catch (error) {
         console.error('Save failed');
@@ -102,6 +114,10 @@ export default function CameraScreen() {
     if (!isRecording) return;
     setIsRecording(false);
     cameraRef.current?.stopRecording();
+  };
+
+  const goToGallery = () => {
+    navigation.navigate('VideoGallery', { videos: savedVideos });
   };
 
   return (
@@ -180,10 +196,10 @@ export default function CameraScreen() {
               ]}
             >
               {!isRecording && (
-                <TouchableOpacity>
-                  {lastVideoUri ? (
+                <TouchableOpacity onPress={goToGallery}>
+                  {savedVideos.length > 0 ? (
                     <Image
-                      source={{ uri: lastVideoUri }}
+                      source={{ uri: savedVideos[savedVideos.length - 1] }}
                       style={styles.thumbnail}
                     />
                   ) : (
@@ -207,7 +223,7 @@ export default function CameraScreen() {
                 {!isRecording && (
                   <View style={styles.rotateCameraButton}>
                     <Image
-                      source={require('../../assets/images/rotate.png')}
+                      source={require('../assets/images/rotate.png')}
                       style={{ width: 25, height: 25 }}
                     />
                   </View>

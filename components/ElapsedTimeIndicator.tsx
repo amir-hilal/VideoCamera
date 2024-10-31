@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import styles from '../app/Camera/CameraScreen.styles';
+import styles from '../app/CameraScreen.styles';
 
 interface ElapsedTimeIndicatorProps {
   elapsedTime: number;
