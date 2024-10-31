@@ -10,6 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import FlashOff from '../assets/svg/flash-off.svg';
+import FlashOn from '../assets/svg/flash-on.svg';
+import GridOff from '../assets/svg/grid-off.svg';
+import GridOn from '../assets/svg/grid-on.svg';
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -64,9 +68,9 @@ export default function CameraScreen() {
   const startRecording = async () => {
     if (isRecording || !cameraRef.current) return;
     setIsRecording(true);
-
+    setLastVideoUri(null);
     try {
-      const video = await cameraRef.current.recordAsync({ maxDuration: 10 });
+      const video = await cameraRef.current.recordAsync();
       if (video?.uri) {
         setLastVideoUri(video.uri);
       } else {
@@ -109,22 +113,34 @@ export default function CameraScreen() {
         {isRecording ? (
           <View style={styles.recordingIndicator}>
             <Text style={styles.recordingText}>Recording</Text>
-            <Text style={styles.elapsedTime}>
-              {`00:${elapsedTime < 10 ? '0' : ''}${elapsedTime}`}
-            </Text>
+            <View style={styles.elapsedTimeBox}>
+              <Text style={styles.elapsedTimeText}>
+                {`00:${elapsedTime < 10 ? '0' : ''}${elapsedTime}`}
+              </Text>
+            </View>
           </View>
         ) : (
           <>
             <TouchableOpacity onPress={toggleGrid} style={styles.controlButton}>
-              <Text style={styles.controlText}>#</Text>
+              <View>
+                {gridVisible ? (
+                  <GridOn width={26} height={26} />
+                ) : (
+                  <GridOff width={26} height={26} />
+                )}
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={toggleFlash}
               style={styles.controlButton}
             >
-              <Text style={styles.controlText}>
-                {flash ? 'Flash On' : 'Flash Off'}
-              </Text>
+              <View>
+                {flash ? (
+                  <FlashOn width={26} height={26} />
+                ) : (
+                  <FlashOff width={26} height={26} />
+                )}
+              </View>
             </TouchableOpacity>
           </>
         )}
@@ -189,6 +205,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     backgroundColor: 'black',
+    alignItems: 'center',
   },
   message: {
     textAlign: 'center',
@@ -201,30 +218,31 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     paddingHorizontal: 20,
     paddingVertical: 10,
-    height: 90,
+    height: 100,
   },
   controlButton: {
-    padding: 10,
+    padding: 20,
     paddingBottom: 0,
   },
-  controlText: {
-    color: 'white',
-    fontSize: 16,
-  },
+
   recordingText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
     marginRight: 10,
   },
-  elapsedTime: {
+  elapsedTimeText: {
     color: 'white',
     width: 80,
     fontSize: 16,
+    textAlign: 'center',
+  },
+  elapsedTimeBox: {
     backgroundColor: 'red',
     paddingHorizontal: 10,
     paddingVertical: 2,
-    textAlign: 'center'
+    alignItems: 'center',
+    borderRadius: 20,
   },
   cameraWrapper: {
     flex: 1,
