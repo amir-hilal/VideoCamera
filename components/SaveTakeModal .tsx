@@ -39,25 +39,27 @@ export default SaveTakeModal;
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: 30,
     alignItems: 'center',
   },
   modalContent: {
     width: '80%',
     padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 20,
     alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 17,
+    fontWeight: '700',
     marginBottom: 10,
+    color: 'white'
   },
   modalSubtitle: {
-    fontSize: 14,
-    color: 'gray',
+    fontSize: 15,
+    fontWeight: '400',
+    color: 'white',
     marginBottom: 20,
   },
   buttonContainer: {
@@ -67,14 +69,16 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     flex: 1,
-    backgroundColor: 'black',
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: '#121212',
+    paddingHorizontal: 10,
+    paddingVertical: 15,
+    borderRadius: 8,
     marginHorizontal: 5,
     alignItems: 'center',
   },
   buttonText: {
     color: 'white',
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '500',
   },
 });

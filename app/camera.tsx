@@ -113,7 +113,7 @@ export default function CameraScreen() {
       const video = await cameraRef.current.recordAsync();
       if (video?.uri) {
         setLastVideoUri(video.uri);
-        setModalVisible(true); // Show modal on recording finish
+        setModalVisible(true);
       }
     } catch (error) {
       console.error('Recording failed.');
@@ -131,12 +131,12 @@ export default function CameraScreen() {
         console.error('Save failed');
       }
     }
-    setModalVisible(false); // Close modal after saving
+    setModalVisible(false);
   };
 
   const handleDiscard = () => {
     setLastVideoUri(null);
-    setModalVisible(false); // Close modal without saving
+    setModalVisible(false);
   };
 
   const stopRecording = () => {
@@ -220,41 +220,45 @@ export default function CameraScreen() {
               />
             </View>
           )}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.sideButton}>
-              {lastVideoUri ? (
-                <Image
-                  source={{ uri: lastVideoUri }}
-                  style={styles.thumbnail}
-                />
-              ) : (
-                <View style={styles.emptyThumbnail} />
-              )}
-            </TouchableOpacity>
+          {!modalVisible && (
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.sideButton}>
+                {lastVideoUri ? (
+                  <Image
+                    source={{ uri: lastVideoUri }}
+                    style={styles.thumbnail}
+                  />
+                ) : (
+                  <View style={styles.emptyThumbnail} />
+                )}
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.recordButton, isRecording && styles.stopButton]}
-              onPress={isRecording ? stopRecording : startRecording}
-            >
-              {isRecording ? (
-                <View style={styles.stopIcon} />
-              ) : (
-                <View style={styles.recordIcon} />
-              )}
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.recordButton, isRecording && styles.stopButton]}
+                onPress={isRecording ? stopRecording : startRecording}
+              >
+                {isRecording ? (
+                  <View style={styles.stopIcon} />
+                ) : (
+                  <View style={styles.recordIcon} />
+                )}
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.sideButton}
-              onPress={toggleCameraFacing}
-            >
-              <View style={styles.rotateCameraButton}>
-                <Image
-                  source={require('../assets/images/rotate.png')}
-                  style={{ width: 25, height: 25 }}
-                />
-              </View>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={styles.sideButton}
+                onPress={toggleCameraFacing}
+              >
+                {!isRecording && (
+                  <View style={styles.rotateCameraButton}>
+                    <Image
+                      source={require('../assets/images/rotate.png')}
+                      style={{ width: 25, height: 25 }}
+                    />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
         </CameraView>
         <SaveTakeModal
           visible={modalVisible}
@@ -263,7 +267,7 @@ export default function CameraScreen() {
         />
 
         <View style={styles.zoomControl}>
-          <ZoomControl zoom={zoom} setZoom={setZoom} />
+          {!modalVisible && <ZoomControl zoom={zoom} setZoom={setZoom} />}
         </View>
       </View>
     </View>
@@ -297,20 +301,21 @@ const styles = StyleSheet.create({
 
   recordingText: {
     color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '400',
     marginRight: 10,
   },
   elapsedTimeText: {
     color: 'white',
-    width: 80,
-    fontSize: 16,
+    fontWeight: '700',
+    width: 70,
+    fontSize: 14,
     textAlign: 'center',
   },
   elapsedTimeBox: {
-    backgroundColor: 'red',
+    backgroundColor: 'rgba(255, 62, 62, 1)',
     paddingHorizontal: 10,
-    paddingVertical: 2,
+    paddingVertical: 4,
     alignItems: 'center',
     borderRadius: 20,
   },
@@ -340,8 +345,6 @@ const styles = StyleSheet.create({
   sideButton: {
     width: 50,
     height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   thumbnail: {
     width: 50,
