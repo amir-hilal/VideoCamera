@@ -3,19 +3,14 @@ import ZoomControl from '@/components/ZoomControl';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Button,
-  Image,
-  PanResponder,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import FlashOff from '../assets/svg/flash-off.svg';
-import FlashOn from '../assets/svg/flash-on.svg';
-import GridOff from '../assets/svg/grid-off.svg';
-import GridOn from '../assets/svg/grid-on.svg';
+import { Button, Image, Text, TouchableOpacity, View } from 'react-native';
+import { ElapsedTimeIndicator } from '../../components/ElapsedTimeIndicator';
+import { useZoomPanResponder } from '../../hooks/useZoomPanResponder';
+import FlashOff from '../../assets/svg/flash-off.svg';
+import FlashOn from '../../assets/svg/flash-on.svg';
+import GridOff from '../../assets/svg/grid-off.svg';
+import GridOn from '../../assets/svg/grid-on.svg';
+import styles from './CameraScreen.styles';
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -28,7 +23,6 @@ export default function CameraScreen() {
   const [lastVideoUri, setLastVideoUri] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [zoom, setZoom] = useState(0);
-  const [lastDistance, setLastDistance] = useState(0);
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(
     null
   );
@@ -40,42 +34,7 @@ export default function CameraScreen() {
       setMediaPermission(status === 'granted');
     })();
   }, []);
-
-  const calculateDistance = (touches: string | any[]) => {
-    if (touches.length < 2) return 0;
-    const [touch1, touch2] = touches;
-    const dx = touch1.pageX - touch2.pageX;
-    const dy = touch1.pageY - touch2.pageY;
-    return Math.hypot(dx, dy); // Calculate precise distance between fingers
-  };
-
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (evt) => {
-      const { touches } = evt.nativeEvent;
-      if (touches.length === 2) {
-        setLastDistance(calculateDistance(touches));
-      }
-    },
-    onPanResponderMove: (evt) => {
-      const { touches } = evt.nativeEvent;
-      if (touches.length === 2) {
-        const currentDistance = calculateDistance(touches);
-        const distanceDelta = currentDistance - lastDistance;
-
-        if (Math.abs(distanceDelta) > 10) {
-          const newZoom =
-            distanceDelta > 0
-              ? Math.min(1, zoom + 0.001)
-              : Math.max(0, zoom - 0.001);
-
-          setZoom(newZoom);
-          setLastDistance(currentDistance);
-        }
-      }
-    },
-  });
+  const panResponder = useZoomPanResponder(zoom, setZoom);
 
   useEffect(() => {
     if (isRecording) {
@@ -150,14 +109,7 @@ export default function CameraScreen() {
       {/* Top Control Section */}
       <View style={styles.topControls}>
         {isRecording ? (
-          <View style={styles.recordingIndicator}>
-            <Text style={styles.recordingText}>Recording</Text>
-            <View style={styles.elapsedTimeBox}>
-              <Text style={styles.elapsedTimeText}>
-                {`00:${elapsedTime < 10 ? '0' : ''}${elapsedTime}`}
-              </Text>
-            </View>
-          </View>
+          <ElapsedTimeIndicator elapsedTime={elapsedTime} />
         ) : (
           <>
             <TouchableOpacity onPress={toggleGrid} style={styles.controlButton}>
@@ -255,7 +207,7 @@ export default function CameraScreen() {
                 {!isRecording && (
                   <View style={styles.rotateCameraButton}>
                     <Image
-                      source={require('../assets/images/rotate.png')}
+                      source={require('../../assets/images/rotate.png')}
                       style={{ width: 25, height: 25 }}
                     />
                   </View>
@@ -277,153 +229,3 @@ export default function CameraScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'black',
-    alignItems: 'center',
-  },
-  message: {
-    textAlign: 'center',
-    paddingBottom: 10,
-  },
-  topControls: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    backgroundColor: 'black',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    height: 100,
-  },
-  controlButton: {
-    padding: 20,
-    paddingBottom: 0,
-  },
-
-  recordingText: {
-    color: 'white',
-    fontSize: 15,
-    fontWeight: '400',
-    marginRight: 10,
-  },
-  elapsedTimeText: {
-    color: 'white',
-    fontWeight: '700',
-    width: 70,
-    fontSize: 14,
-    textAlign: 'center',
-  },
-
-  elapsedTimeBox: {
-    backgroundColor: 'rgba(255, 62, 62, 1)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    alignItems: 'center',
-    borderRadius: 20,
-  },
-  cameraWrapper: {
-    flex: 1,
-    aspectRatio: 9 / 16,
-    overflow: 'hidden',
-  },
-  zoomControl: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  camera: {
-    flex: 1,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    position: 'absolute',
-    bottom: 30,
-    width: '100%',
-    paddingHorizontal: 20,
-    zIndex: 2,
-  },
-  centeredButtonContainer: {
-    justifyContent: 'center',
-  },
-
-  thumbnail: {
-    width: 50,
-    height: 50,
-    borderRadius: 50,
-  },
-  emptyThumbnail: {
-    width: 50,
-    height: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: 50,
-  },
-  rotateCameraButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    borderRadius: 50,
-    width: 50,
-    height: 50,
-  },
-
-  recordingIndicator: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    padding: 4,
-    width: '100%',
-    borderRadius: 100,
-  },
-
-  recordButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 4,
-    borderColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
-  },
-  stopButton: {
-    borderColor: 'white',
-  },
-  recordIcon: {
-    width: 25,
-    height: 25,
-    borderRadius: 30,
-    backgroundColor: 'red',
-  },
-  stopIcon: {
-    width: 25,
-    height: 25,
-    borderRadius: 4,
-    backgroundColor: 'black',
-  },
-  disabledButton: {
-    opacity: 0.4,
-  },
-  gridOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1,
-  },
-  line: {
-    position: 'absolute',
-    backgroundColor: 'white',
-    opacity: 0.4,
-  },
-  horizontalLine: {
-    height: 1,
-    width: '100%',
-  },
-  verticalLine: {
-    width: 1,
-    height: '100%',
-  },
-});

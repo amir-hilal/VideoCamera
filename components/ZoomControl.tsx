@@ -8,7 +8,7 @@ interface ZoomControlProps {
 
 const ZoomControl: React.FC<ZoomControlProps> = ({ zoom, setZoom }) => {
   const zoomLevels = [
-    { label: '0x', value: 0 },
+    { label: '1x', value: 0 },
     { label: '2x', value: 0.025 },
     { label: '4x', value: 0.1 },
   ];
