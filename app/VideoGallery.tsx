@@ -3,16 +3,16 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from 'expo-router';
 import React from 'react';
 import {
+  Dimensions,
   FlatList,
   Image,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { RootStackParamList } from './types';
-import { RootState } from '@/store/store';
 import { useSelector } from 'react-redux';
-
+import { RootState } from '../store/store';
+import { RootStackParamList } from './types';
 type VideoGalleryRouteProp = RouteProp<RootStackParamList, 'VideoGallery'>;
 type VideoGalleryNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -22,8 +22,13 @@ type VideoGalleryNavigationProp = StackNavigationProp<
 interface VideoGalleryProps {
   route: VideoGalleryRouteProp;
 }
+const screenWidth = Dimensions.get('window').width;
+const numColumns = 2;
+const thumbnailWidth = screenWidth / numColumns - 20;
+
 export default function VideoGallery() {
   const videos = useSelector((state: RootState) => state.videos.videos);
+  const thumbnails = useSelector((state: RootState) => state.videos.thumbnails);
   const navigation = useNavigation<VideoGalleryNavigationProp>();
 
   const previewVideo = (uri: string) => {
@@ -31,34 +36,39 @@ export default function VideoGallery() {
   };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={videos}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.videoThumbnail}
-            onPress={() => previewVideo(item)}
-          >
-            <Image source={{ uri: item }} style={styles.thumbnail} />
+    <FlatList
+      data={videos}
+      keyExtractor={(item, index) => index.toString()}
+      numColumns={numColumns}
+      renderItem={({ item, index }) => (
+        <View style={styles.videoThumbnailContainer}>
+          <TouchableOpacity onPress={() => previewVideo(item)}>
+            <Image
+              source={{ uri: thumbnails[index] }}
+              style={styles.thumbnail}
+            />
           </TouchableOpacity>
-        )}
-      />
-    </View>
+        </View>
+      )}
+      contentContainerStyle={styles.container}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: 'black',
     padding: 10,
   },
-  videoThumbnail: {
-    marginBottom: 10,
+  videoThumbnailContainer: {
+    width: thumbnailWidth,
+    height: thumbnailWidth * (16 / 9),
+    margin: 5,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   thumbnail: {
     width: '100%',
-    height: 200,
+    height: '100%',
   },
 });

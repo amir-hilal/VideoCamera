@@ -1,5 +1,5 @@
 export type RootStackParamList = {
   CameraScreen: undefined;
-  VideoGallery: { videos: string[] };
+  VideoGallery: undefined;
   VideoPlayer: { uri: string };
 };
