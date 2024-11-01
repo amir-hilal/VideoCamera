@@ -14,6 +14,8 @@ import CameraScreen from './CameraScreen';
 import { RootStackParamList } from './types';
 import VideoGallery from './VideoGallery';
 import VideoPlayer from './VideoPlayer';
+import store from '@/store/store';
+import { Provider } from 'react-redux';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -37,24 +39,26 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack.Navigator initialRouteName="CameraScreen">
-        <Stack.Screen
-          name="CameraScreen"
-          component={CameraScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="VideoGallery"
-          component={VideoGallery}
-          options={{ title: 'Video Gallery' }}
-        />
-        <Stack.Screen
-          name="VideoPlayer"
-          component={VideoPlayer}
-          options={{ title: 'Video Player' }}
-        />
-      </Stack.Navigator>
-    </ThemeProvider>
+    <Provider store={store}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack.Navigator initialRouteName="CameraScreen">
+          <Stack.Screen
+            name="CameraScreen"
+            component={CameraScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="VideoGallery"
+            component={VideoGallery}
+            options={{ title: 'Video Gallery' }}
+          />
+          <Stack.Screen
+            name="VideoPlayer"
+            component={VideoPlayer}
+            options={{ title: 'Video Player' }}
+          />
+        </Stack.Navigator>
+      </ThemeProvider>
+    </Provider>
   );
 }

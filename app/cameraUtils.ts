@@ -1,4 +1,5 @@
-export const calculateDistance = (touches) => {
+//cameraUtils.ts
+export const calculateDistance = (touches: string | any[]) => {
   if (touches.length < 2) return 0;
   const [touch1, touch2] = touches;
   const dx = touch1.pageX - touch2.pageX;

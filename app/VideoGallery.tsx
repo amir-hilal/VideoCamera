@@ -10,6 +10,8 @@ import {
   View,
 } from 'react-native';
 import { RootStackParamList } from './types';
+import { RootState } from '@/store/store';
+import { useSelector } from 'react-redux';
 
 type VideoGalleryRouteProp = RouteProp<RootStackParamList, 'VideoGallery'>;
 type VideoGalleryNavigationProp = StackNavigationProp<
@@ -20,8 +22,8 @@ type VideoGalleryNavigationProp = StackNavigationProp<
 interface VideoGalleryProps {
   route: VideoGalleryRouteProp;
 }
-export default function VideoGallery({ route }: VideoGalleryProps) {
-  const { videos } = route.params;
+export default function VideoGallery() {
+  const videos = useSelector((state: RootState) => state.videos.videos);
   const navigation = useNavigation<VideoGalleryNavigationProp>();
 
   const previewVideo = (uri: string) => {

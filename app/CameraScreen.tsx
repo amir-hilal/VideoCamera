@@ -7,12 +7,14 @@ import * as MediaLibrary from 'expo-media-library';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import React, { useEffect, useRef, useState } from 'react';
 import { Button, Image, Text, TouchableOpacity, View } from 'react-native';
+import { useDispatch } from 'react-redux';
 import FlashOff from '../assets/svg/flash-off.svg';
 import FlashOn from '../assets/svg/flash-on.svg';
 import GridOff from '../assets/svg/grid-off.svg';
 import GridOn from '../assets/svg/grid-on.svg';
 import { ElapsedTimeIndicator } from '../components/ElapsedTimeIndicator';
 import { useZoomPanResponder } from '../hooks/useZoomPanResponder';
+import { addVideo } from '../store/videoSlice';
 import styles from './CameraScreen.styles';
 import { RootStackParamList } from './types';
 
@@ -40,7 +42,8 @@ export default function CameraScreen() {
   const navigation = useNavigation<CameraScreenNavigationProp>();
   const [lastVideoThumbnail, setLastVideoThumbnail] = useState<string | null>(
     null
-  ); // Thumbnail URI
+  );
+  const dispatch = useDispatch();
 
   useEffect(() => {
     (async () => {
@@ -65,7 +68,7 @@ export default function CameraScreen() {
   const generateThumbnail = async (videoUri: string) => {
     try {
       const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
-        time: 1500, // Specify a time in milliseconds to capture the thumbnail
+        time: 1500, 
       });
       setLastVideoThumbnail(uri);
     } catch (e) {
@@ -111,7 +114,7 @@ export default function CameraScreen() {
     if (lastVideoUri) {
       try {
         await MediaLibrary.createAssetAsync(lastVideoUri);
-        setSavedVideos([...savedVideos, lastVideoUri]);
+        dispatch(addVideo(lastVideoUri));
 
         console.log('Video saved successfully');
       } catch (error) {
