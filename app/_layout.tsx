@@ -10,12 +10,13 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import store from '@/store/store';
+import React from 'react';
+import { Provider } from 'react-redux';
+import { RootStackParamList } from '../constants/types';
 import CameraScreen from './CameraScreen';
-import { RootStackParamList } from './types';
 import VideoGallery from './VideoGallery';
 import VideoPlayer from './VideoPlayer';
-import store from '@/store/store';
-import { Provider } from 'react-redux';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

@@ -5,15 +5,21 @@ export const calculateDistance = (touches: any[]) => {
   const [touch1, touch2] = touches;
   const dx = touch1.pageX - touch2.pageX;
   const dy = touch1.pageY - touch2.pageY;
-  return Math.hypot(dx, dy); // distance between fingers
+  return Math.hypot(dx, dy);
 };
 
-export const generateThumbnail = async (videoUri: string): Promise<string | null> => {
+export const generateThumbnail = async (
+  videoUri: string
+): Promise<string | null> => {
   try {
-    const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, { time: 1500 });
+    const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+      time: 1500,
+    });
     return uri;
   } catch (error) {
     console.warn('Thumbnail generation failed:', error);
     return null;
   }
 };
+
+

@@ -11,8 +11,8 @@ import {
   View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
+import { RootStackParamList } from '../constants/types';
 import { RootState } from '../store/store';
-import { RootStackParamList } from './types';
 type VideoGalleryRouteProp = RouteProp<RootStackParamList, 'VideoGallery'>;
 type VideoGalleryNavigationProp = StackNavigationProp<
   RootStackParamList,

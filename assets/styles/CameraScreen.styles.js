@@ -8,6 +8,7 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   message: {
+    color:'white',
     textAlign: 'center',
     paddingBottom: 10,
   },

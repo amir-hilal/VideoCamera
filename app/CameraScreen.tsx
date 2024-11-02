@@ -13,10 +13,10 @@ import FlashOn from '../assets/svg/flash-on.svg';
 import GridOff from '../assets/svg/grid-off.svg';
 import GridOn from '../assets/svg/grid-on.svg';
 import { ElapsedTimeIndicator } from '../components/ElapsedTimeIndicator';
+import { RootStackParamList } from '../constants/types';
 import { useZoomPanResponder } from '../hooks/useZoomPanResponder';
 import { addVideo } from '../store/videoSlice';
 import { generateThumbnail } from '../utils/cameraUtils';
-import { RootStackParamList } from './types';
 
 type CameraScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -83,7 +83,7 @@ export default function CameraScreen() {
     if (isRecording || !cameraRef.current) return;
     setIsRecording(true);
     try {
-      const video = await cameraRef.current.recordAsync();
+      const video = await cameraRef.current.recordAsync({ mirror: true });
       if (video?.uri) {
         setLastVideoUri(video.uri);
         const thumbnailUri = await generateThumbnail(video.uri);
@@ -91,7 +91,7 @@ export default function CameraScreen() {
         setModalVisible(true);
       }
     } catch (error) {
-      console.error('Recording failed.');
+      console.error('Recording failed.', error);
     } finally {
       setIsRecording(false);
     }
@@ -106,7 +106,7 @@ export default function CameraScreen() {
         );
         console.log('Video saved successfully');
       } catch (error) {
-        console.error('Save failed');
+        console.error('Save failed', error);
       }
     }
     setModalVisible(false);
@@ -124,9 +124,7 @@ export default function CameraScreen() {
     cameraRef.current?.stopRecording();
   };
 
-  const goToGallery = () => {
-    navigation.navigate('VideoGallery');
-  };
+  const goToGallery = () => navigation.navigate('VideoGallery');
 
   return (
     <View style={styles.container}>
