@@ -18,7 +18,7 @@ const SaveTakeModal: React.FC<SaveTakeModalProps> = ({
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Save Take?</Text>
           <Text style={styles.modalSubtitle}>
-            Listening for “YES” or “NO”...
+            Select “YES” to save, “NO” to discard...
           </Text>
           <View style={styles.buttonContainer}>
             <TouchableOpacity onPress={onYes} style={styles.modalButton}>
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    width: '80%',
+    width: '90%',
     padding: 20,
     backgroundColor: 'rgba(0,0,0,0.3)',
     borderRadius: 20,
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     marginBottom: 10,
-    color: 'white'
+    color: 'white',
   },
   modalSubtitle: {
     fontSize: 15,

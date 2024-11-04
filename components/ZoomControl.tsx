@@ -48,13 +48,13 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: 150,
+    width: 110,
     position: 'absolute',
-    bottom: 190,
+    bottom: 200,
   },
   zoomButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     borderRadius: 15,
   },
   selectedZoomButton: {
@@ -64,8 +64,11 @@ const styles = StyleSheet.create({
   zoomText: {
     color: 'white',
     fontWeight: 'bold',
+    fontSize: 10
   },
   selectedZoomText: {
     color: 'black',
+    fontSize: 12
+
   },
 });

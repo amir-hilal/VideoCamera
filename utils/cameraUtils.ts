@@ -1,3 +1,4 @@
+import { Audio } from 'expo-av';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 
 export const calculateDistance = (touches: any[]) => {
@@ -22,4 +23,19 @@ export const generateThumbnail = async (
   }
 };
 
+export const playReadyToRecordAudio = async () => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('../assets/audio/ready-to-record.mp3')
+    );
+    await sound.playAsync();
 
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && !status.isBuffering && status.didJustFinish) {
+        sound.unloadAsync();
+      }
+    });
+  } catch (error) {
+    console.warn('Failed to play audio:', error);
+  }
+};

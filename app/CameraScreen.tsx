@@ -16,7 +16,10 @@ import { ElapsedTimeIndicator } from '../components/ElapsedTimeIndicator';
 import { RootStackParamList } from '../constants/types';
 import { useZoomPanResponder } from '../hooks/useZoomPanResponder';
 import { addVideo } from '../store/videoSlice';
-import { generateThumbnail } from '../utils/cameraUtils';
+import {
+  generateThumbnail,
+  playReadyToRecordAudio,
+} from '../utils/cameraUtils';
 
 type CameraScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -46,6 +49,7 @@ export default function CameraScreen() {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       setMediaPermission(status === 'granted');
     })();
+    playReadyToRecordAudio();
   }, []);
 
   const panResponder = useZoomPanResponder(zoom, setZoom);
@@ -83,7 +87,7 @@ export default function CameraScreen() {
     if (isRecording || !cameraRef.current) return;
     setIsRecording(true);
     try {
-      const video = await cameraRef.current.recordAsync({ mirror: true });
+      const video = await cameraRef.current.recordAsync({ mirror: (facing==='front') });
       if (video?.uri) {
         setLastVideoUri(video.uri);
         const thumbnailUri = await generateThumbnail(video.uri);
@@ -110,6 +114,8 @@ export default function CameraScreen() {
       }
     }
     setModalVisible(false);
+
+    playReadyToRecordAudio();
   };
 
   const handleDiscard = () => {
